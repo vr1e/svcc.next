@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
+import { SpeakerFilterContext } from '../contexts/SpeakerFilterContext';
 
 function Session({ title, room }) {
 	return (
@@ -9,9 +10,18 @@ function Session({ title, room }) {
 }
 
 function Sessions({ sessions }) {
+	const { eventYear } = useContext(SpeakerFilterContext);
 	return (
 		<div className='sessionBox card h-250'>
-			<Session {...sessions[0]} />
+			{sessions
+				.filter((session) => session.eventYear === eventYear)
+				.map((session) => {
+					return (
+						<div className='session w-100' key={session.id}>
+							<Session {...session} />
+						</div>
+					);
+				})}
 		</div>
 	);
 }
@@ -65,7 +75,7 @@ function SpeakerDemographics({
 	company,
 	twitterHandle,
 	favorite,
-	onFavoriteToggle,
+	onFavoriteToggle
 }) {
 	return (
 		<div className='speaker-info'>
@@ -95,8 +105,9 @@ function SpeakerDemographics({
 	);
 }
 
-export default function Speaker({ speaker, showSessions, onFavoriteToggle }) {
+export default function Speaker({ speaker, onFavoriteToggle }) {
 	const { id, first, last, sessions } = speaker;
+	const { showSessions } = useContext(SpeakerFilterContext);
 	return (
 		<div className='col-xs-12 col-sm-12 col-md-6 col-lg-4 col-sm-12 col-xs-12'>
 			<div className='card card-height p-4 mt-4'>

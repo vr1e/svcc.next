@@ -1,15 +1,19 @@
-import Speaker from './Speaker';
 import ReactPlaceholder from 'react-placeholder';
-import useRequestDelay, { REQUEST_STATUS } from '../hooks/useRequestDelay';
 import { data } from '../../SpeakerData';
+import useRequestDelay, { REQUEST_STATUS } from '../hooks/useRequestDelay';
+import Speaker from './Speaker';
+import { SpeakerFilterContext } from '../contexts/SpeakerFilterContext';
+import { useContext } from 'react';
 
-export default function SpeakersList({ showSessions }) {
+export default function SpeakersList() {
 	const {
 		data: speakersData,
 		requestStatus,
 		error,
-		updateRecord,
+		updateRecord
 	} = useRequestDelay(2000, data);
+
+	const { searchQuery, eventYear } = useContext(SpeakerFilterContext);
 
 	if (requestStatus === REQUEST_STATUS.FAILURE)
 		return (
@@ -28,19 +32,30 @@ export default function SpeakersList({ showSessions }) {
 				className='speakers-list-placeholder'
 				ready={requestStatus === REQUEST_STATUS.SUCCESS}>
 				<div className='row'>
-					{speakersData.map(speaker => (
-						<Speaker
-							key={speaker.id}
-							speaker={speaker}
-							showSessions={showSessions}
-							onFavoriteToggle={doneCallback => {
-								updateRecord(
-									{ ...speaker, favorite: !speaker.favorite },
-									doneCallback
-								);
-							}}
-						/>
-					))}
+					{speakersData
+						.filter((speaker) => {
+							return (
+								speaker.first.toLowerCase().includes(searchQuery.toLowerCase()) ||
+								speaker.last.toLowerCase().includes(searchQuery.toLowerCase())
+							);
+						})
+						.filter((speaker) => {
+							return speaker.sessions.find((session) => {
+								return session.eventYear === eventYear;
+							});
+						})
+						.map((speaker) => (
+							<Speaker
+								key={speaker.id}
+								speaker={speaker}
+								onFavoriteToggle={(doneCallback) => {
+									updateRecord(
+										{ ...speaker, favorite: !speaker.favorite },
+										doneCallback
+									);
+								}}
+							/>
+						))}
 				</div>
 			</ReactPlaceholder>
 		</div>
