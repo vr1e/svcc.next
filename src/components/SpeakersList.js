@@ -1,17 +1,20 @@
+import { useContext } from 'react';
 import ReactPlaceholder from 'react-placeholder';
 import { data } from '../../SpeakerData';
-import useRequestDelay, { REQUEST_STATUS } from '../hooks/useRequestDelay';
-import Speaker from './Speaker';
 import { SpeakerFilterContext } from '../contexts/SpeakerFilterContext';
-import { useContext } from 'react';
+import useRequestRest, { REQUEST_STATUS } from '../hooks/useRequestRest';
+import Speaker from './Speaker';
+import SpeakerAdd from './SpeakerAdd';
 
 export default function SpeakersList() {
 	const {
 		data: speakersData,
 		requestStatus,
 		error,
-		updateRecord
-	} = useRequestDelay(2000, data);
+		insertRecord,
+		updateRecord,
+		deleteRecord,
+	} = useRequestRest();
 
 	const { searchQuery, eventYear } = useContext(SpeakerFilterContext);
 
@@ -31,29 +34,29 @@ export default function SpeakersList() {
 				rows={15}
 				className='speakers-list-placeholder'
 				ready={requestStatus === REQUEST_STATUS.SUCCESS}>
+				<SpeakerAdd eventYear={eventYear} insertRecord={insertRecord} />
 				<div className='row'>
 					{speakersData
-						.filter((speaker) => {
+						.filter(speaker => {
 							return (
-								speaker.first.toLowerCase().includes(searchQuery.toLowerCase()) ||
+								speaker.first
+									.toLowerCase()
+									.includes(searchQuery.toLowerCase()) ||
 								speaker.last.toLowerCase().includes(searchQuery.toLowerCase())
 							);
 						})
-						.filter((speaker) => {
-							return speaker.sessions.find((session) => {
+						.filter(speaker => {
+							return speaker.sessions.find(session => {
 								return session.eventYear === eventYear;
 							});
 						})
-						.map((speaker) => (
+						.map(speaker => (
 							<Speaker
 								key={speaker.id}
 								speaker={speaker}
-								onFavoriteToggle={(doneCallback) => {
-									updateRecord(
-										{ ...speaker, favorite: !speaker.favorite },
-										doneCallback
-									);
-								}}
+								insertRecord={insertRecord}
+								updateRecord={updateRecord}
+								deleteRecord={deleteRecord}
 							/>
 						))}
 				</div>

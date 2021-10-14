@@ -1,5 +1,7 @@
 import { useContext, useState } from 'react';
+import { SpeakerContext, SpeakerProvider } from '../contexts/SpeakerContext';
 import { SpeakerFilterContext } from '../contexts/SpeakerFilterContext';
+import SpeakerDelete from './SpeakerDelete';
 
 function Session({ title, room }) {
 	return (
@@ -9,13 +11,15 @@ function Session({ title, room }) {
 	);
 }
 
-function Sessions({ sessions }) {
+function Sessions() {
 	const { eventYear } = useContext(SpeakerFilterContext);
+	const { speaker } = useContext(SpeakerContext);
+	const sessions = speaker.sessions;
 	return (
 		<div className='sessionBox card h-250'>
 			{sessions
-				.filter((session) => session.eventYear === eventYear)
-				.map((session) => {
+				.filter(session => session.eventYear === eventYear)
+				.map(session => {
 					return (
 						<div className='session w-100' key={session.id}>
 							<Session {...session} />
@@ -26,10 +30,27 @@ function Sessions({ sessions }) {
 	);
 }
 
-function SpeakerImage({ id, first, last }) {
+function ImageWithFallback({ src, ...props }) {
+	const [error, setError] = useState(false);
+	const [imgSrc, setImgSrc] = useState(src);
+
+	function onError() {
+		if (!error) {
+			setImgSrc('/images/speaker-99999.jpg');
+			setError(true);
+		}
+	}
+
+	return <img src={imgSrc} {...props} onError={onError} />;
+}
+
+function SpeakerImage() {
+	const { speaker } = useContext(SpeakerContext);
+	const { id, first, last } = speaker;
+
 	return (
 		<div className='speaker-img d-flex flex-row justify-content-center align-items-center h-300'>
-			<img
+			<ImageWithFallback
 				className='contain-fit'
 				src={`/images/speaker-${id}.jpg`}
 				width='300'
@@ -39,7 +60,8 @@ function SpeakerImage({ id, first, last }) {
 	);
 }
 
-function SpeakerFavorite({ favorite, onFavoriteToggle }) {
+function SpeakerFavorite() {
+	const { speaker, updateRecord } = useContext(SpeakerContext);
 	const [inTransition, setInTransition] = useState(false);
 	function doneCallback() {
 		setInTransition(false);
@@ -53,11 +75,16 @@ function SpeakerFavorite({ favorite, onFavoriteToggle }) {
 			<span
 				onClick={function () {
 					setInTransition(true);
-					return onFavoriteToggle(doneCallback);
+					updateRecord(
+						{ ...speaker, favorite: !speaker.favorite },
+						doneCallback
+					);
 				}}>
 				<i
 					className={
-						favorite === true ? 'fa fa-star orange' : 'fa fa-star-o orange'
+						speaker.favorite === true
+							? 'fa fa-star orange'
+							: 'fa fa-star-o orange'
 					}></i>{' '}
 				Favorite{' '}
 				{inTransition ? (
@@ -68,15 +95,10 @@ function SpeakerFavorite({ favorite, onFavoriteToggle }) {
 	);
 }
 
-function SpeakerDemographics({
-	first,
-	last,
-	bio,
-	company,
-	twitterHandle,
-	favorite,
-	onFavoriteToggle
-}) {
+function SpeakerDemographics() {
+	const { speaker } = useContext(SpeakerContext);
+	const { first, last, bio, company, twitterHandle, favorite } = speaker;
+
 	return (
 		<div className='speaker-info'>
 			<div className='d-flex justify-content-between mb-3'>
@@ -84,10 +106,7 @@ function SpeakerDemographics({
 					{first} {last}
 				</h3>
 			</div>
-			<SpeakerFavorite
-				favorite={favorite}
-				onFavoriteToggle={onFavoriteToggle}
-			/>
+			<SpeakerFavorite />
 			<div>
 				<p className='card-description'>{bio}</p>
 				<div className='social d-flex flex-row mt-4'>
@@ -105,16 +124,27 @@ function SpeakerDemographics({
 	);
 }
 
-export default function Speaker({ speaker, onFavoriteToggle }) {
-	const { id, first, last, sessions } = speaker;
+export default function Speaker({
+	speaker,
+	insertRecord,
+	updateRecord,
+	deleteRecord,
+}) {
 	const { showSessions } = useContext(SpeakerFilterContext);
 	return (
-		<div className='col-xs-12 col-sm-12 col-md-6 col-lg-4 col-sm-12 col-xs-12'>
-			<div className='card card-height p-4 mt-4'>
-				<SpeakerImage id={id} first={first} last={last} />
-				<SpeakerDemographics {...speaker} onFavoriteToggle={onFavoriteToggle} />
+		<SpeakerProvider
+			speaker={speaker}
+			insertRecord={insertRecord}
+			updateRecord={updateRecord}
+			deleteRecord={deleteRecord}>
+			<div className='col-xs-12 col-sm-12 col-md-6 col-lg-4 col-sm-12 col-xs-12'>
+				<div className='card card-height p-4 mt-4'>
+					<SpeakerImage />
+					<SpeakerDemographics />
+				</div>
+				{showSessions === true ? <Sessions /> : null}
+				<SpeakerDelete />
 			</div>
-			{showSessions === true ? <Sessions sessions={sessions} /> : null}
-		</div>
+		</SpeakerProvider>
 	);
 }
