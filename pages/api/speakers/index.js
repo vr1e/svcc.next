@@ -1,4 +1,4 @@
-import { data } from '../../../SpeakerData';
+// import { data } from '../../../SpeakerData';
 import path from 'path';
 import fs from 'fs';
 
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 			res.status(404).send('Error: Request failed with status code 404');
 		} else {
 			res.setHeader('Content-Type', 'application/json');
-			res.status(200).send(JSON.stringify(data, null, 2));
+			res.status(200).send(JSON.stringify(speakers, null, 2));
 			console.log('GET /api/speakers status: 200');
 		}
 	} catch (error) {

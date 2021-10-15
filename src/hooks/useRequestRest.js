@@ -59,13 +59,12 @@ export default function useRequestRest() {
 
 	function insertRecord(record, doneCallback) {
 		const originalRecords = [...data];
-		const newRecords = [record, ...data];
-
 		async function delayFunction() {
 			try {
+				const results = await axios.post(`${restUrl}/99999`, record);
+				const { data: insertedRecord } = results;
+				const newRecords = [insertedRecord, ...data];
 				setData(newRecords);
-				await axios.post(`${restUrl}/99999`, record);
-
 				if (doneCallback) {
 					doneCallback();
 				}
@@ -77,7 +76,6 @@ export default function useRequestRest() {
 				setData(originalRecords);
 			}
 		}
-
 		delayFunction();
 	}
 

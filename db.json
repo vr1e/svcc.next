@@ -1,22 +1,6 @@
 {
   "speakers": [
     {
-      "id": "47344",
-      "first": "Joe",
-      "last": "Biden",
-      "bio": "Bio not entered yet",
-      "sessions": [
-        {
-          "id": "8888",
-          "title": "New Session For Joe",
-          "room": {
-            "name": "Main Ball Room"
-          },
-          "eventYear": "2019"
-        }
-      ]
-    },
-    {
       "id": "1269",
       "first": "Arun",
       "last": "Gupta",
